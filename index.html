@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dictado Médico EsSalud</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background: #eef2f6; margin: 0; padding: 12px; color: #2c3e50; }
+        
+        .card { 
+            background: #ffffff; 
+            border-radius: 14px; 
+            padding: 20px; 
+            box-shadow: 0 4px 20px rgba(0, 114, 206, 0.08); 
+            max-width: 500px; 
+            margin: auto; 
+            border: 1px solid #e2e8f0;
+        }
+
+        .header { text-align: center; margin-bottom: 18px; }
+        .header h2 { color: #0072CE; margin: 0; font-size: 1.35rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .header-line { height: 2px; background: #0072CE; margin-top: 10px; border-radius: 2px; }
+
+        /* Módulo de Audio */
+        .audio-card { 
+            background: #f8fafc; 
+            border: 2px dashed #93c5fd; 
+            border-radius: 12px; 
+            padding: 16px; 
+            text-align: center; 
+            margin-bottom: 18px; 
+        }
+        .audio-card-title { font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 10px; }
+        .btn-group { display: flex; justify-content: center; gap: 10px; }
+        
+        .btn-rec { 
+            background: #dc2626; color: white; border: none; padding: 10px 18px; 
+            border-radius: 20px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(220, 38, 38, 0.2);
+        }
+        .btn-stop { 
+            background: #64748b; color: white; border: none; padding: 10px 18px; 
+            border-radius: 20px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-rec:disabled, .btn-stop:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+        .status-rec { font-size: 0.82rem; font-weight: 600; margin-top: 10px; color: #64748b; }
+        audio { width: 100%; margin-top: 12px; border-radius: 8px; }
+
+        /* Formulario */
+        .form-group { margin-bottom: 14px; }
+        label { font-weight: 600; font-size: 0.83rem; display: block; margin-bottom: 5px; color: #1e293b; }
+        
+        input, textarea, select { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 8px; 
+            font-size: 0.9rem; 
+            background-color: #fff;
+            color: #1e293b;
+        }
+        textarea { resize: vertical; min-height: 55px; }
+        input:focus, textarea:focus, select:focus { 
+            border-color: #0072CE; 
+            outline: none; 
+            box-shadow: 0 0 0 3px rgba(0, 114, 206, 0.15); 
+        }
+
+        .btn-submit { 
+            background: #0072CE; 
+            color: white; 
+            border: none; 
+            width: 100%; 
+            padding: 14px; 
+            border-radius: 10px; 
+            font-size: 1rem; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            box-shadow: 0 4px 10px rgba(0, 114, 206, 0.25);
+        }
+        .btn-submit:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h2>🎙️ Dictado Médico EsSalud</h2>
+        <div class="header-line"></div>
+    </div>
+
+    <!-- Módulo de Grabación -->
+    <div class="audio-card">
+        <div class="audio-card-title">Grabación de Voz</div>
+        <div class="btn-group">
+            <button type="button" id="btnStart" class="btn-rec">🔴 Grabar Audio</button>
+            <button type="button" id="btnStop" class="btn-stop" disabled>⏹️ Detener</button>
+        </div>
+        <div id="statusRec" class="status-rec">Listo para grabar</div>
+        <audio id="audioPreview" controls style="display:none;"></audio>
+    </div>
+
+    <form id="dictadoForm">
+        <div class="form-group">
+            <label>Dictado Completo (Texto)</label>
+            <textarea id="dictadoTexto" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Anamnesis</label>
+            <textarea id="anamnesis" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Diagnóstico</label>
+            <textarea id="diagnostico" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Signos Vitales</label>
+            <input type="text" id="signosVitales" placeholder="PA: 120/80, FC: 70, T: 36.5...">
+        </div>
+
+        <div class="form-group">
+            <label>Indicaciones</label>
+            <textarea id="indicaciones" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Plan de Trabajo</label>
+            <textarea id="planTrabajo" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Examen Clínico</label>
+            <textarea id="examenClinico" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Tipo Ley Contingencia</label>
+            <select id="tipoLey">
+                <option value="">-- Seleccionar --</option>
+                <option value="No corresponde">No corresponde</option>
+                <option value="Accidente de Trabajo">Accidente de Trabajo</option>
+                <option value="Enfermedad Profesional">Enfermedad Profesional</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Resultado Atención</label>
+            <select id="resultadoAtencion">
+                <option value="">-- Seleccionar --</option>
+                <option value="Alta">Alta</option>
+                <option value="Emergencia">Emergencia</option>
+                <option value="Evaluación Pre Procedimiento">Evaluación Pre Procedimiento</option>
+                <option value="Hospitalización">Hospitalización</option>
+                <option value="Interconsulta">Interconsulta</option>
+                <option value="Pre Operatorio">Pre Operatorio</option>
+                <option value="Procedimientos">Procedimientos</option>
+                <option value="Recita">Recita</option>
+                <option value="Recita /Interconsultas">Recita /Interconsultas</option>
+                <option value="Referencia">Referencia</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>¿Atención de Control?</label>
+            <select id="atencionControl">
+                <option value="No">No</option>
+                <option value="Si">Si</option>
+            </select>
+        </div>
+
+        <button type="button" id="btnSend" class="btn-submit">📤 Enviar a Google Drive / Sheet</button>
+    </form>
+</div>
+
+<script>
+    // URL del backend configurado en tu Apps Script institucional
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjQD5d1Dy1xYkQtkl313bmz25KOdgyxJTNfo825TQaLeDVb_a7rQufG0jk3_krNwk0/exec";
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let audioBase64 = "";
+
+    const btnStart = document.getElementById('btnStart');
+    const btnStop = document.getElementById('btnStop');
+    const statusRec = document.getElementById('statusRec');
+    const audioPreview = document.getElementById('audioPreview');
+    const btnSend = document.getElementById('btnSend');
+
+    btnStart.onclick = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => {
+                const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                const audioBlob = new Blob(audioChunks, { type: mimeType });
+                audioPreview.src = URL.createObjectURL(audioBlob);
+                audioPreview.style.display = 'block';
+
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = () => {
+                    audioBase64 = reader.result;
+                    statusRec.innerText = "✅ Grabación finalizada y lista";
+                    statusRec.style.color = "#15803d";
+                };
+            };
+
+            mediaRecorder.start();
+            btnStart.disabled = true;
+            btnStop.disabled = false;
+            statusRec.innerText = "🔴 Grabando voz...";
+            statusRec.style.color = "#dc2626";
+        } catch (err) {
+            alert("⚠️ No se pudo acceder al micrófono. Verifica los permisos de tu navegador.");
+        }
+    };
+
+    btnStop.onclick = () => {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(t => t.stop());
+        btnStart.disabled = false;
+        btnStop.disabled = true;
+    };
+
+    btnSend.onclick = () => {
+        btnSend.disabled = true;
+        btnSend.innerText = "⏳ Guardando en Drive / Sheet...";
+
+        const payload = {
+            audioBase64: audioBase64,
+            dictadoTexto: document.getElementById('dictadoTexto').value,
+            anamnesis: document.getElementById('anamnesis').value,
+            diagnostico: document.getElementById('diagnostico').value,
+            signosVitales: document.getElementById('signosVitales').value,
+            indicaciones: document.getElementById('indicaciones').value,
+            planTrabajo: document.getElementById('planTrabajo').value,
+            examenClinico: document.getElementById('examenClinico').value,
+            tipoLey: document.getElementById('tipoLey').value,
+            resultadoAtencion: document.getElementById('resultadoAtencion').value,
+            atencionControl: document.getElementById('atencionControl').value
+        };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if(res.status === "success") {
+                alert("✅ ¡Registro enviado exitosamente a Google Drive y Sheet!");
+                document.getElementById('dictadoForm').reset();
+                audioPreview.style.display = 'none';
+                audioBase64 = "";
+                statusRec.innerText = "Listo para grabar";
+                statusRec.style.color = "#64748b";
+            } else {
+                alert("❌ Error: " + res.message);
+            }
+        })
+        .catch(err => alert("❌ Error en la comunicación con el servidor."))
+        .finally(() => {
+            btnSend.disabled = false;
+            btnSend.innerText = "📤 Enviar a Google Drive / Sheet";
+        });
+    };
+</script>
+</body>
+</html>
