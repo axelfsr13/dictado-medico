@@ -43,7 +43,6 @@
         cursor: pointer; white-space: nowrap; flex-shrink: 0;
     }
     .btn-mic.grabando { background: #dc2626; border-color: #dc2626; color: #fff; }
-    .btn-mic:disabled { opacity: .35; cursor: not-allowed; }
 
     input, textarea, select {
         width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1;
@@ -60,7 +59,6 @@
         background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px;
         padding: 5px 9px; margin-top: 4px; font-size: .75rem; color: #166534;
     }
-    .item-audio.subido { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
     .item-audio button { border: none; background: none; color: #dc2626; cursor: pointer; font-size: .9rem; padding: 0 2px; }
     .item-audio audio { height: 28px; max-width: 150px; }
 
@@ -204,6 +202,7 @@
 </div>
 
 <script>
+// ===== Pega aquí la URL de tu implementación activa (termina en /exec) =====
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjQD5d1Dy1xYkQtkl313bmz25KOdgyxJTNfo825TQaLeDVb_a7rQufG0jk3_krNwk0/exec";
 
 let grabaciones = [];
@@ -220,8 +219,7 @@ function nuevoCasoId() {
 
 function pausa(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ---------- Evitar que Enter recargue la pagina ----------
-
+// ===== Enter no debe recargar la página =====
 document.getElementById('dictadoForm').addEventListener('keydown', e => {
     if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
@@ -229,8 +227,7 @@ document.getElementById('dictadoForm').addEventListener('keydown', e => {
     }
 });
 
-// ---------- Grabacion ----------
-
+// ===== Grabación =====
 document.querySelectorAll('.btn-mic, .btn-mic-grande').forEach(btn => {
     btn.onclick = () => {
         if (recorder && recorder.state === "recording") {
@@ -264,13 +261,7 @@ async function iniciar(btn) {
                 const registrar = dur => {
                     if (listo) return;
                     listo = true;
-                    grabaciones.push({
-                        campo: campo,
-                        base64: reader.result,
-                        objUrl: objUrl,
-                        duracion: dur,
-                        url: null
-                    });
+                    grabaciones.push({ campo, base64: reader.result, objUrl, duracion: dur });
                     pintarListas();
                 };
                 tmp.onloadedmetadata = () => {
@@ -305,18 +296,16 @@ function resetBoton() {
     btnActivo = null;
 }
 
-// ---------- Lista de grabaciones ----------
-
+// ===== Lista de grabaciones =====
 function pintarListas() {
     document.querySelectorAll('.lista-audios').forEach(c => c.innerHTML = "");
     grabaciones.forEach((g, i) => {
         const cont = document.getElementById('lista_' + g.campo);
         if (!cont) return;
         const div = document.createElement('div');
-        div.className = 'item-audio' + (g.url ? ' subido' : '');
-        div.innerHTML =
-            `<span>${g.url ? '☁️ subido' : '🎧'} ${g.duracion ? g.duracion + 's' : ''}</span>` +
-            `<audio controls src="${g.objUrl}"></audio>`;
+        div.className = 'item-audio';
+        div.innerHTML = `<span>🎧 ${g.duracion ? g.duracion + 's' : ''}</span>` +
+                        `<audio controls src="${g.objUrl}"></audio>`;
         const btn = document.createElement('button');
         btn.textContent = "✕";
         btn.onclick = () => { grabaciones.splice(i, 1); pintarListas(); };
@@ -325,33 +314,49 @@ function pintarListas() {
     });
 }
 
-// ---------- Envio con reintentos ----------
+// ===== Comunicación con el backend =====
+// El POST va en modo no-cors: el navegador no lee la respuesta, y así se evita
+// el redirect de Apps Script que rompía el envío. La confirmación se hace por GET.
 
-async function enviar(payload, intentos = 3) {
-    let ultimoError;
-    for (let i = 0; i < intentos; i++) {
-        try {
-            const res = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload),
-                redirect: 'follow',
-                cache: 'no-store'
-            });
-            const txt = await res.text();
-            try {
-                return JSON.parse(txt);
-            } catch (e) {
-                ultimoError = new Error("HTTP " + res.status + " — respuesta no válida del servidor");
-            }
-        } catch (e) {
-            ultimoError = new Error("Fallo de red: " + e.message);
-        }
-        if (i < intentos - 1) await pausa(2000 * (i + 1));
-    }
-    throw ultimoError;
+async function enviarSinRespuesta(payload) {
+    await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+    });
 }
 
+async function consultarCaso(id) {
+    const res = await fetch(SCRIPT_URL + "?casoId=" + encodeURIComponent(id) + "&t=" + Date.now(), { cache: 'no-store' });
+    return await res.json();
+}
+
+async function esperarAudios(id, esperados, intentos = 8) {
+    let ultimo = 0;
+    for (let i = 0; i < intentos; i++) {
+        await pausa(2500);
+        try {
+            const d = await consultarCaso(id);
+            ultimo = d.audios || 0;
+            if (ultimo >= esperados) return ultimo;
+        } catch (e) { /* reintenta */ }
+    }
+    return ultimo;
+}
+
+async function esperarCaso(id, intentos = 6) {
+    for (let i = 0; i < intentos; i++) {
+        await pausa(2500);
+        try {
+            const d = await consultarCaso(id);
+            if (d.caso_guardado) return true;
+        } catch (e) { /* reintenta */ }
+    }
+    return false;
+}
+
+// ===== Envío =====
 const btnSend = document.getElementById('btnSend');
 
 btnSend.onclick = async () => {
@@ -365,30 +370,32 @@ btnSend.onclick = async () => {
     }
 
     btnSend.disabled = true;
+    const idActual = casoId;
+
     try {
         for (let i = 0; i < grabaciones.length; i++) {
-            if (grabaciones[i].url) continue;
             btnSend.innerText = `⏳ Subiendo audio ${i + 1} de ${grabaciones.length}...`;
-            const r = await enviar({
+            await enviarSinRespuesta({
                 accion: "audio",
-                casoId: casoId,
+                casoId: idActual,
                 indice: i + 1,
                 campo: grabaciones[i].campo,
                 duracion: grabaciones[i].duracion,
                 audioBase64: grabaciones[i].base64
             });
-            if (r.status !== "success") throw new Error("Audio " + (i + 1) + ": " + r.message);
-            grabaciones[i].url = r.url;
-            pintarListas();
-            await pausa(1500);
+            await pausa(2000);
+        }
+
+        btnSend.innerText = "⏳ Verificando audios...";
+        const subidos = await esperarAudios(idActual, grabaciones.length);
+        if (subidos < grabaciones.length) {
+            throw new Error(`Llegaron ${subidos} de ${grabaciones.length} audios. Vuelve a pulsar Guardar: los que ya subieron no se repiten.`);
         }
 
         btnSend.innerText = "⏳ Guardando caso...";
-        const completo = grabaciones.find(g => g.campo === "Dictado_Completo");
-        const rc = await enviar({
+        await enviarSinRespuesta({
             accion: "caso",
-            casoId: casoId,
-            linkCompleto: completo ? completo.url : "",
+            casoId: idActual,
             totalAudios: grabaciones.length,
             dictadoTexto: document.getElementById('dictadoTexto').value,
             anamnesis: document.getElementById('anamnesis').value,
@@ -403,9 +410,14 @@ btnSend.onclick = async () => {
             especialidad: document.getElementById('especialidad').value,
             condiciones: document.getElementById('condiciones').value
         });
-        if (rc.status !== "success") throw new Error(rc.message);
 
-        alert("✅ Caso guardado con " + grabaciones.length + " grabación(es).");
+        btnSend.innerText = "⏳ Confirmando...";
+        const ok = await esperarCaso(idActual);
+        if (!ok) {
+            throw new Error("Los audios subieron, pero la fila del caso no se confirmó. Vuelve a pulsar Guardar.");
+        }
+
+        alert(`✅ Caso ${idActual} guardado con ${grabaciones.length} grabación(es).`);
         grabaciones = [];
         casoId = nuevoCasoId();
         document.getElementById('casoIdLabel').textContent = casoId;
@@ -413,7 +425,7 @@ btnSend.onclick = async () => {
         pintarListas();
 
     } catch (err) {
-        alert("❌ " + err.message + "\n\nLos audios ya subidos no se repiten si vuelves a intentar.");
+        alert("⚠️ " + err.message);
     } finally {
         btnSend.disabled = false;
         btnSend.innerText = "📤 Guardar caso";
