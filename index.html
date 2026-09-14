@@ -218,7 +218,18 @@ function nuevoCasoId() {
            p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
 }
 
-// ---------- Grabación ----------
+function pausa(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ---------- Evitar que Enter recargue la pagina ----------
+
+document.getElementById('dictadoForm').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        e.target.blur();
+    }
+});
+
+// ---------- Grabacion ----------
 
 document.querySelectorAll('.btn-mic, .btn-mic-grande').forEach(btn => {
     btn.onclick = () => {
@@ -244,6 +255,7 @@ async function iniciar(btn) {
             const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
             const objUrl = URL.createObjectURL(blob);
             const tmp = new Audio(objUrl);
+            const campo = campoActivo;
 
             const reader = new FileReader();
             reader.readAsDataURL(blob);
@@ -253,7 +265,7 @@ async function iniciar(btn) {
                     if (listo) return;
                     listo = true;
                     grabaciones.push({
-                        campo: campoActivo,
+                        campo: campo,
                         base64: reader.result,
                         objUrl: objUrl,
                         duracion: dur,
@@ -274,7 +286,7 @@ async function iniciar(btn) {
 
         recorder.start();
         btn.classList.add('grabando');
-        btn.innerHTML = btn.classList.contains('btn-mic-grande') ? "⏹️ Detener" : "⏹️ Detener";
+        btn.innerHTML = "⏹️ Detener";
         if (campoActivo === "Dictado_Completo") {
             document.getElementById('statusRec').textContent = "🔴 Grabando...";
             document.getElementById('statusRec').style.color = "#dc2626";
@@ -313,20 +325,31 @@ function pintarListas() {
     });
 }
 
-// ---------- Envío ----------
+// ---------- Envio con reintentos ----------
 
-function enviar(payload) {
-    return fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload),
-        redirect: 'follow'
-    })
-    .then(res => res.text().then(txt => ({ status: res.status, txt })))
-    .then(r => {
-        try { return JSON.parse(r.txt); }
-        catch (e) { throw new Error("HTTP " + r.status + " — respuesta no válida: " + r.txt.substring(0, 150)); }
-    });
+async function enviar(payload, intentos = 3) {
+    let ultimoError;
+    for (let i = 0; i < intentos; i++) {
+        try {
+            const res = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload),
+                redirect: 'follow',
+                cache: 'no-store'
+            });
+            const txt = await res.text();
+            try {
+                return JSON.parse(txt);
+            } catch (e) {
+                ultimoError = new Error("HTTP " + res.status + " — respuesta no válida del servidor");
+            }
+        } catch (e) {
+            ultimoError = new Error("Fallo de red: " + e.message);
+        }
+        if (i < intentos - 1) await pausa(2000 * (i + 1));
+    }
+    throw ultimoError;
 }
 
 const btnSend = document.getElementById('btnSend');
@@ -357,6 +380,7 @@ btnSend.onclick = async () => {
             if (r.status !== "success") throw new Error("Audio " + (i + 1) + ": " + r.message);
             grabaciones[i].url = r.url;
             pintarListas();
+            await pausa(1500);
         }
 
         btnSend.innerText = "⏳ Guardando caso...";
