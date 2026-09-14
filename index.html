@@ -252,22 +252,30 @@
         fetch(SCRIPT_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            redirect: 'follow'
         })
-        .then(res => res.json())
-        .then(res => {
-            if(res.status === "success") {
-                alert("✅ ¡Registro enviado exitosamente a Google Drive y Sheet!");
+        .then(res => res.text().then(txt => ({ ok: res.ok, status: res.status, txt })))
+        .then(r => {
+            let data;
+            try {
+                data = JSON.parse(r.txt);
+            } catch (e) {
+                alert("Respuesta no-JSON (HTTP " + r.status + "):\n" + r.txt.substring(0, 300));
+                return;
+            }
+            if (data.status === "success") {
+                alert("✅ Registro enviado");
                 document.getElementById('dictadoForm').reset();
                 audioPreview.style.display = 'none';
                 audioBase64 = "";
                 statusRec.innerText = "Listo para grabar";
                 statusRec.style.color = "#64748b";
             } else {
-                alert("❌ Error: " + res.message);
+                alert("❌ " + data.message);
             }
         })
-        .catch(err => alert("❌ Error en la comunicación con el servidor."))
+        .catch(err => alert("Fallo de red: " + err.name + " — " + err.message))
         .finally(() => {
             btnSend.disabled = false;
             btnSend.innerText = "📤 Enviar a Google Drive / Sheet";
