@@ -1,88 +1,79 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dictado Médico EsSalud</title>
-    <style>
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background: #eef2f6; margin: 0; padding: 12px; color: #2c3e50; }
-        
-        .card { 
-            background: #ffffff; 
-            border-radius: 14px; 
-            padding: 20px; 
-            box-shadow: 0 4px 20px rgba(0, 114, 206, 0.08); 
-            max-width: 500px; 
-            margin: auto; 
-            border: 1px solid #e2e8f0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dictado Médico EsSalud</title>
+<style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background: #eef2f6; margin: 0; padding: 12px; color: #2c3e50; }
 
-        .header { text-align: center; margin-bottom: 18px; }
-        .header h2 { color: #0072CE; margin: 0; font-size: 1.35rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .header-line { height: 2px; background: #0072CE; margin-top: 10px; border-radius: 2px; }
+    .card {
+        background: #fff; border-radius: 14px; padding: 20px;
+        box-shadow: 0 4px 20px rgba(0,114,206,.08);
+        max-width: 500px; margin: auto; border: 1px solid #e2e8f0;
+    }
 
-        /* Módulo de Audio */
-        .audio-card { 
-            background: #f8fafc; 
-            border: 2px dashed #93c5fd; 
-            border-radius: 12px; 
-            padding: 16px; 
-            text-align: center; 
-            margin-bottom: 18px; 
-        }
-        .audio-card-title { font-size: 0.85rem; font-weight: 700; color: #475569; margin-bottom: 10px; }
-        .btn-group { display: flex; justify-content: center; gap: 10px; }
-        
-        .btn-rec { 
-            background: #dc2626; color: white; border: none; padding: 10px 18px; 
-            border-radius: 20px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 5px rgba(220, 38, 38, 0.2);
-        }
-        .btn-stop { 
-            background: #64748b; color: white; border: none; padding: 10px 18px; 
-            border-radius: 20px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 6px;
-        }
-        .btn-rec:disabled, .btn-stop:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
-        .status-rec { font-size: 0.82rem; font-weight: 600; margin-top: 10px; color: #64748b; }
-        audio { width: 100%; margin-top: 12px; border-radius: 8px; }
+    .header { text-align: center; margin-bottom: 18px; }
+    .header h2 { color: #0072CE; margin: 0; font-size: 1.35rem; }
+    .header-line { height: 2px; background: #0072CE; margin-top: 10px; border-radius: 2px; }
+    .caso-id { font-size: .72rem; color: #64748b; margin-top: 6px; }
 
-        /* Formulario */
-        .form-group { margin-bottom: 14px; }
-        label { font-weight: 600; font-size: 0.83rem; display: block; margin-bottom: 5px; color: #1e293b; }
-        
-        input, textarea, select { 
-            width: 100%; 
-            padding: 10px 12px; 
-            border: 1px solid #cbd5e1; 
-            border-radius: 8px; 
-            font-size: 0.9rem; 
-            background-color: #fff;
-            color: #1e293b;
-        }
-        textarea { resize: vertical; min-height: 55px; }
-        input:focus, textarea:focus, select:focus { 
-            border-color: #0072CE; 
-            outline: none; 
-            box-shadow: 0 0 0 3px rgba(0, 114, 206, 0.15); 
-        }
+    .audio-card {
+        background: #f8fafc; border: 2px dashed #93c5fd; border-radius: 12px;
+        padding: 16px; text-align: center; margin-bottom: 18px;
+    }
+    .audio-card-title { font-size: .85rem; font-weight: 700; color: #475569; margin-bottom: 4px; }
+    .audio-card-sub { font-size: .75rem; color: #64748b; margin-bottom: 10px; }
 
-        .btn-submit { 
-            background: #0072CE; 
-            color: white; 
-            border: none; 
-            width: 100%; 
-            padding: 14px; 
-            border-radius: 10px; 
-            font-size: 1rem; 
-            font-weight: bold; 
-            cursor: pointer; 
-            margin-top: 10px; 
-            box-shadow: 0 4px 10px rgba(0, 114, 206, 0.25);
-        }
-        .btn-submit:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
-    </style>
+    .btn-rec {
+        background: #dc2626; color: #fff; border: none; padding: 12px 22px;
+        border-radius: 20px; font-weight: 600; font-size: .92rem; cursor: pointer;
+        box-shadow: 0 2px 5px rgba(220,38,38,.2);
+    }
+    .btn-rec.grabando { background: #64748b; box-shadow: none; }
+
+    .form-group { margin-bottom: 14px; }
+    .label-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 5px; }
+    label { font-weight: 600; font-size: .83rem; color: #1e293b; margin: 0; }
+
+    .btn-mic {
+        background: #e0f2fe; border: 1px solid #7dd3fc; color: #0369a1;
+        border-radius: 14px; padding: 4px 11px; font-size: .74rem;
+        cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-mic.grabando { background: #dc2626; border-color: #dc2626; color: #fff; }
+    .btn-mic:disabled { opacity: .35; cursor: not-allowed; }
+
+    input, textarea, select {
+        width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1;
+        border-radius: 8px; font-size: .9rem; background: #fff; color: #1e293b;
+    }
+    textarea { resize: vertical; min-height: 55px; }
+    input:focus, textarea:focus, select:focus {
+        border-color: #0072CE; outline: none; box-shadow: 0 0 0 3px rgba(0,114,206,.15);
+    }
+
+    .lista-audios { margin: 4px 0 0; }
+    .item-audio {
+        display: flex; justify-content: space-between; align-items: center;
+        background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px;
+        padding: 5px 9px; margin-top: 4px; font-size: .75rem; color: #166534;
+    }
+    .item-audio.subido { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+    .item-audio button { border: none; background: none; color: #dc2626; cursor: pointer; font-size: .9rem; padding: 0 2px; }
+    .item-audio audio { height: 28px; max-width: 150px; }
+
+    .btn-submit {
+        background: #0072CE; color: #fff; border: none; width: 100%;
+        padding: 14px; border-radius: 10px; font-size: 1rem; font-weight: bold;
+        cursor: pointer; margin-top: 12px; box-shadow: 0 4px 10px rgba(0,114,206,.25);
+    }
+    .btn-submit:disabled { background: #94a3b8; box-shadow: none; cursor: not-allowed; }
+
+    .aviso { font-size: .73rem; color: #b45309; background: #fffbeb;
+             border: 1px solid #fde68a; border-radius: 8px; padding: 8px 10px; margin-top: 10px; }
+</style>
 </head>
 <body>
 
@@ -90,57 +81,80 @@
     <div class="header">
         <h2>🎙️ Dictado Médico EsSalud</h2>
         <div class="header-line"></div>
+        <div class="caso-id">Caso: <span id="casoIdLabel"></span></div>
     </div>
 
-    <!-- Módulo de Grabación -->
     <div class="audio-card">
-        <div class="audio-card-title">Grabación de Voz</div>
-        <div class="btn-group">
-            <button type="button" id="btnStart" class="btn-rec">🔴 Grabar Audio</button>
-            <button type="button" id="btnStop" class="btn-stop" disabled>⏹️ Detener</button>
-        </div>
-        <div id="statusRec" class="status-rec">Listo para grabar</div>
-        <audio id="audioPreview" controls style="display:none;"></audio>
+        <div class="audio-card-title">Dictado completo</div>
+        <div class="audio-card-sub">Graba todo el caso de corrido, o usa el micrófono de cada campo</div>
+        <button type="button" class="btn-rec btn-mic-grande" data-campo="Dictado_Completo">🔴 Grabar dictado</button>
+        <div id="statusRec" class="audio-card-sub" style="margin:10px 0 0">Listo para grabar</div>
+        <div class="lista-audios" id="lista_Dictado_Completo"></div>
     </div>
 
-    <form id="dictadoForm">
+    <form id="dictadoForm" onsubmit="return false">
+
         <div class="form-group">
-            <label>Dictado Completo (Texto)</label>
-            <textarea id="dictadoTexto" rows="2"></textarea>
+            <div class="label-row"><label>Dictado completo (texto)</label></div>
+            <textarea id="dictadoTexto" rows="3" placeholder="Escribe aquí literalmente lo que dictaste"></textarea>
         </div>
 
         <div class="form-group">
-            <label>Anamnesis</label>
+            <div class="label-row">
+                <label>Anamnesis</label>
+                <button type="button" class="btn-mic" data-campo="Anamnesis">🎤 Grabar</button>
+            </div>
             <textarea id="anamnesis" rows="3"></textarea>
+            <div class="lista-audios" id="lista_Anamnesis"></div>
         </div>
 
         <div class="form-group">
-            <label>Diagnóstico</label>
+            <div class="label-row">
+                <label>Diagnóstico</label>
+                <button type="button" class="btn-mic" data-campo="Diagnostico">🎤 Grabar</button>
+            </div>
             <textarea id="diagnostico" rows="2"></textarea>
+            <div class="lista-audios" id="lista_Diagnostico"></div>
         </div>
 
         <div class="form-group">
-            <label>Signos Vitales</label>
+            <div class="label-row">
+                <label>Signos vitales</label>
+                <button type="button" class="btn-mic" data-campo="Signos_Vitales">🎤 Grabar</button>
+            </div>
             <input type="text" id="signosVitales" placeholder="PA: 120/80, FC: 70, T: 36.5...">
+            <div class="lista-audios" id="lista_Signos_Vitales"></div>
         </div>
 
         <div class="form-group">
-            <label>Indicaciones</label>
+            <div class="label-row">
+                <label>Indicaciones</label>
+                <button type="button" class="btn-mic" data-campo="Indicaciones">🎤 Grabar</button>
+            </div>
             <textarea id="indicaciones" rows="2"></textarea>
+            <div class="lista-audios" id="lista_Indicaciones"></div>
         </div>
 
         <div class="form-group">
-            <label>Plan de Trabajo</label>
+            <div class="label-row">
+                <label>Plan de trabajo</label>
+                <button type="button" class="btn-mic" data-campo="Plan_Trabajo">🎤 Grabar</button>
+            </div>
             <textarea id="planTrabajo" rows="2"></textarea>
+            <div class="lista-audios" id="lista_Plan_Trabajo"></div>
         </div>
 
         <div class="form-group">
-            <label>Examen Clínico</label>
+            <div class="label-row">
+                <label>Examen clínico</label>
+                <button type="button" class="btn-mic" data-campo="Examen_Clinico">🎤 Grabar</button>
+            </div>
             <textarea id="examenClinico" rows="2"></textarea>
+            <div class="lista-audios" id="lista_Examen_Clinico"></div>
         </div>
 
         <div class="form-group">
-            <label>Tipo Ley Contingencia</label>
+            <div class="label-row"><label>Tipo ley contingencia</label></div>
             <select id="tipoLey">
                 <option value="">-- Seleccionar --</option>
                 <option value="No corresponde">No corresponde</option>
@@ -150,7 +164,7 @@
         </div>
 
         <div class="form-group">
-            <label>Resultado Atención</label>
+            <div class="label-row"><label>Resultado atención</label></div>
             <select id="resultadoAtencion">
                 <option value="">-- Seleccionar --</option>
                 <option value="Alta">Alta</option>
@@ -167,76 +181,191 @@
         </div>
 
         <div class="form-group">
-            <label>¿Atención de Control?</label>
+            <div class="label-row"><label>¿Atención de control?</label></div>
             <select id="atencionControl">
                 <option value="No">No</option>
                 <option value="Si">Si</option>
             </select>
         </div>
 
-        <button type="button" id="btnSend" class="btn-submit">📤 Enviar a Google Drive / Sheet</button>
+        <div class="form-group">
+            <div class="label-row"><label>Especialidad</label></div>
+            <input type="text" id="especialidad" placeholder="Medicina interna, pediatría...">
+        </div>
+
+        <div class="form-group">
+            <div class="label-row"><label>Condiciones de grabación</label></div>
+            <input type="text" id="condiciones" placeholder="Consultorio silencioso, con ruido, auricular...">
+        </div>
+
+        <button type="button" id="btnSend" class="btn-submit">📤 Guardar caso</button>
+        <div class="aviso">No cierres ni cambies de aplicación mientras se guarda.</div>
     </form>
 </div>
 
 <script>
-    // URL del backend configurado en tu Apps Script institucional
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjQD5d1Dy1xYkQtkl313bmz25KOdgyxJTNfo825TQaLeDVb_a7rQufG0jk3_krNwk0/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxqRM8Vi9NGSNKY3_ZYUg0oNC-HUYmcqqXwaLcUUzaDu7XVvD0uRiFZIjlKiOjB3oKRUA/exec";
 
-    let mediaRecorder;
-    let audioChunks = [];
-    let audioBase64 = "";
+let grabaciones = [];
+let casoId = nuevoCasoId();
+let recorder = null, chunks = [], campoActivo = null, btnActivo = null;
 
-    const btnStart = document.getElementById('btnStart');
-    const btnStop = document.getElementById('btnStop');
-    const statusRec = document.getElementById('statusRec');
-    const audioPreview = document.getElementById('audioPreview');
-    const btnSend = document.getElementById('btnSend');
+document.getElementById('casoIdLabel').textContent = casoId;
 
-    btnStart.onclick = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            audioChunks = [];
+function nuevoCasoId() {
+    const d = new Date(), p = n => ("0" + n).slice(-2);
+    return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "_" +
+           p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+}
 
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => {
-                const mimeType = mediaRecorder.mimeType || 'audio/webm';
-                const audioBlob = new Blob(audioChunks, { type: mimeType });
-                audioPreview.src = URL.createObjectURL(audioBlob);
-                audioPreview.style.display = 'block';
+// ---------- Grabación ----------
 
-                const reader = new FileReader();
-                reader.readAsDataURL(audioBlob);
-                reader.onloadend = () => {
-                    audioBase64 = reader.result;
-                    statusRec.innerText = "✅ Grabación finalizada y lista";
-                    statusRec.style.color = "#15803d";
+document.querySelectorAll('.btn-mic, .btn-mic-grande').forEach(btn => {
+    btn.onclick = () => {
+        if (recorder && recorder.state === "recording") {
+            if (btn === btnActivo) recorder.stop();
+            else alert("Ya hay una grabación en curso. Deténla primero.");
+            return;
+        }
+        iniciar(btn);
+    };
+});
+
+async function iniciar(btn) {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recorder = new MediaRecorder(stream);
+        chunks = [];
+        campoActivo = btn.dataset.campo;
+        btnActivo = btn;
+
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+            const objUrl = URL.createObjectURL(blob);
+            const tmp = new Audio(objUrl);
+
+            const reader = new FileReader();
+            reader.readAsDataURL(blob);
+            reader.onloadend = () => {
+                let listo = false;
+                const registrar = dur => {
+                    if (listo) return;
+                    listo = true;
+                    grabaciones.push({
+                        campo: campoActivo,
+                        base64: reader.result,
+                        objUrl: objUrl,
+                        duracion: dur,
+                        url: null
+                    });
+                    pintarListas();
                 };
+                tmp.onloadedmetadata = () => {
+                    const d = tmp.duration;
+                    registrar(isFinite(d) ? Math.round(d) : "");
+                };
+                setTimeout(() => registrar(""), 1500);
             };
 
-            mediaRecorder.start();
-            btnStart.disabled = true;
-            btnStop.disabled = false;
-            statusRec.innerText = "🔴 Grabando voz...";
-            statusRec.style.color = "#dc2626";
-        } catch (err) {
-            alert("⚠️ No se pudo acceder al micrófono. Verifica los permisos de tu navegador.");
+            recorder.stream.getTracks().forEach(t => t.stop());
+            resetBoton();
+        };
+
+        recorder.start();
+        btn.classList.add('grabando');
+        btn.innerHTML = btn.classList.contains('btn-mic-grande') ? "⏹️ Detener" : "⏹️ Detener";
+        if (campoActivo === "Dictado_Completo") {
+            document.getElementById('statusRec').textContent = "🔴 Grabando...";
+            document.getElementById('statusRec').style.color = "#dc2626";
         }
-    };
+    } catch (err) {
+        alert("No se pudo acceder al micrófono. Revisa los permisos del navegador.");
+    }
+}
 
-    btnStop.onclick = () => {
-        mediaRecorder.stop();
-        mediaRecorder.stream.getTracks().forEach(t => t.stop());
-        btnStart.disabled = false;
-        btnStop.disabled = true;
-    };
+function resetBoton() {
+    if (!btnActivo) return;
+    btnActivo.classList.remove('grabando');
+    btnActivo.innerHTML = btnActivo.classList.contains('btn-mic-grande') ? "🔴 Grabar dictado" : "🎤 Grabar";
+    document.getElementById('statusRec').textContent = "Listo para grabar";
+    document.getElementById('statusRec').style.color = "#64748b";
+    btnActivo = null;
+}
 
-    btnSend.onclick = () => {
-        btnSend.disabled = true;
-        btnSend.innerText = "⏳ Guardando en Drive / Sheet...";
+// ---------- Lista de grabaciones ----------
 
-        const payload = {
-            audioBase64: audioBase64,
+function pintarListas() {
+    document.querySelectorAll('.lista-audios').forEach(c => c.innerHTML = "");
+    grabaciones.forEach((g, i) => {
+        const cont = document.getElementById('lista_' + g.campo);
+        if (!cont) return;
+        const div = document.createElement('div');
+        div.className = 'item-audio' + (g.url ? ' subido' : '');
+        div.innerHTML =
+            `<span>${g.url ? '☁️ subido' : '🎧'} ${g.duracion ? g.duracion + 's' : ''}</span>` +
+            `<audio controls src="${g.objUrl}"></audio>`;
+        const btn = document.createElement('button');
+        btn.textContent = "✕";
+        btn.onclick = () => { grabaciones.splice(i, 1); pintarListas(); };
+        div.appendChild(btn);
+        cont.appendChild(div);
+    });
+}
+
+// ---------- Envío ----------
+
+function enviar(payload) {
+    return fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        redirect: 'follow'
+    })
+    .then(res => res.text().then(txt => ({ status: res.status, txt })))
+    .then(r => {
+        try { return JSON.parse(r.txt); }
+        catch (e) { throw new Error("HTTP " + r.status + " — respuesta no válida: " + r.txt.substring(0, 150)); }
+    });
+}
+
+const btnSend = document.getElementById('btnSend');
+
+btnSend.onclick = async () => {
+    if (recorder && recorder.state === "recording") {
+        alert("Detén la grabación antes de guardar.");
+        return;
+    }
+    if (grabaciones.length === 0) {
+        alert("No hay ninguna grabación en este caso.");
+        return;
+    }
+
+    btnSend.disabled = true;
+    try {
+        for (let i = 0; i < grabaciones.length; i++) {
+            if (grabaciones[i].url) continue;
+            btnSend.innerText = `⏳ Subiendo audio ${i + 1} de ${grabaciones.length}...`;
+            const r = await enviar({
+                accion: "audio",
+                casoId: casoId,
+                indice: i + 1,
+                campo: grabaciones[i].campo,
+                duracion: grabaciones[i].duracion,
+                audioBase64: grabaciones[i].base64
+            });
+            if (r.status !== "success") throw new Error("Audio " + (i + 1) + ": " + r.message);
+            grabaciones[i].url = r.url;
+            pintarListas();
+        }
+
+        btnSend.innerText = "⏳ Guardando caso...";
+        const completo = grabaciones.find(g => g.campo === "Dictado_Completo");
+        const rc = await enviar({
+            accion: "caso",
+            casoId: casoId,
+            linkCompleto: completo ? completo.url : "",
+            totalAudios: grabaciones.length,
             dictadoTexto: document.getElementById('dictadoTexto').value,
             anamnesis: document.getElementById('anamnesis').value,
             diagnostico: document.getElementById('diagnostico').value,
@@ -246,41 +375,28 @@
             examenClinico: document.getElementById('examenClinico').value,
             tipoLey: document.getElementById('tipoLey').value,
             resultadoAtencion: document.getElementById('resultadoAtencion').value,
-            atencionControl: document.getElementById('atencionControl').value
-        };
-
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload),
-            redirect: 'follow'
-        })
-        .then(res => res.text().then(txt => ({ ok: res.ok, status: res.status, txt })))
-        .then(r => {
-            let data;
-            try {
-                data = JSON.parse(r.txt);
-            } catch (e) {
-                alert("Respuesta no-JSON (HTTP " + r.status + "):\n" + r.txt.substring(0, 300));
-                return;
-            }
-            if (data.status === "success") {
-                alert("✅ Registro enviado");
-                document.getElementById('dictadoForm').reset();
-                audioPreview.style.display = 'none';
-                audioBase64 = "";
-                statusRec.innerText = "Listo para grabar";
-                statusRec.style.color = "#64748b";
-            } else {
-                alert("❌ " + data.message);
-            }
-        })
-        .catch(err => alert("Fallo de red: " + err.name + " — " + err.message))
-        .finally(() => {
-            btnSend.disabled = false;
-            btnSend.innerText = "📤 Enviar a Google Drive / Sheet";
+            atencionControl: document.getElementById('atencionControl').value,
+            especialidad: document.getElementById('especialidad').value,
+            condiciones: document.getElementById('condiciones').value
         });
-    };
+        if (rc.status !== "success") throw new Error(rc.message);
+
+        alert("✅ Caso guardado con " + grabaciones.length + " grabación(es).");
+        grabaciones = [];
+        casoId = nuevoCasoId();
+        document.getElementById('casoIdLabel').textContent = casoId;
+        document.getElementById('dictadoForm').reset();
+        pintarListas();
+
+    } catch (err) {
+        alert("❌ " + err.message + "\n\nLos audios ya subidos no se repiten si vuelves a intentar.");
+    } finally {
+        btnSend.disabled = false;
+        btnSend.innerText = "📤 Guardar caso";
+    }
+};
+
+window.onbeforeunload = () => grabaciones.length ? "Tienes grabaciones sin guardar." : null;
 </script>
 </body>
 </html>
